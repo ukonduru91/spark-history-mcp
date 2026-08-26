@@ -74,6 +74,13 @@ similar ground interactively — the engineer drives, step by step. The skills a
 for the other mode: the model does the analysis and hands back a report. Both
 work; they suit different moments.
 
+## How they were tested
+
+Both were run against a live Spark History Server and compared against the same
+model with no skill loaded. [EVALUATION.md](EVALUATION.md) records what that
+found — including the two places the testing improved the skills, and an honest
+note on where the baseline held its own.
+
 ## Extending them
 
 The reference files are the place to put what your team learns. A failure

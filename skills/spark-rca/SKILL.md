@@ -110,6 +110,15 @@ tool problem — it is Spark telling you the stage died early, which is itself
 evidence. Fall back to the stage's own counters from `list_stages` and rely on
 the task exceptions from step 3.
 
+Whether or not the metrics are available, answer one more question before
+moving on: **is this failure deterministic, and how much of the data does it
+touch?** A single bad row that one task happened to hit is a very different
+problem from a condition that every partition will meet. The exception usually
+tells you — a value in the message (`id=99999`), a row count, a file path —
+and the partitioning is in the stage's `numTasks` and the job's source. Getting
+this wrong sends people to retries and repartitioning for a failure that will
+recur identically on every run, so say which one it is and why.
+
 ### 5. Rule in or out the environment
 
 Only when the exception points at a version, class, config or resource problem:
