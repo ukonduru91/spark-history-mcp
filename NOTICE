@@ -1,0 +1,14 @@
+Spark History Server MCP (TypeScript)
+
+This product is a TypeScript port of:
+
+  mcp-apache-spark-history-server
+  Copyright The Kubeflow Authors
+  https://github.com/kubeflow/mcp-apache-spark-history-server
+  Licensed under the Apache License, Version 2.0
+
+The tool and prompt definitions, their descriptions and JSON schemas, the
+configuration semantics and the sample Spark event logs under examples/basic
+derive from that project. The TypeScript implementation, the parity test
+harness, the agent skills under skills/ and the additional example jobs are
+new work, released under the same license.

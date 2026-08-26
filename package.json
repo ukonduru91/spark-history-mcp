@@ -1,0 +1,35 @@
+{
+  "name": "mcp-apache-spark-history-server",
+  "version": "0.1.0",
+  "description": "TypeScript port of the Apache Spark History Server MCP (kubeflow/mcp-apache-spark-history-server)",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "spark-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "parity": "python3 parity/run_cases.py"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "express": "^4.21.2",
+    "socks-proxy-agent": "^10.1.0",
+    "yaml": "^2.5.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

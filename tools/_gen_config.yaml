@@ -1,0 +1,6 @@
+servers:
+  local:
+    default: true
+    url: "http://localhost:18080"
+mcp:
+  transport: stdio

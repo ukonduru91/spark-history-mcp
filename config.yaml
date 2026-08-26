@@ -1,0 +1,52 @@
+# WARNING: Do not commit your sensitive credentials
+servers:
+  local:
+    default: true  # if server name is not provided in tool calls, this Spark History Server is used
+    url: "http://localhost:18080"
+    # Optional authentication (can also use environment variables).
+    # auth:
+    #   username: ${SHS_SERVERS__LOCAL__AUTH__USERNAME}
+    #   password: ${SHS_SERVERS__LOCAL__AUTH__PASSWORD}
+    #   token: ${SHS_SPARK_TOKEN}
+
+  # Production server example
+  # production:
+  #   url: "https://spark-history.company.com:18080"
+  #   verify_ssl: true
+  #   # Path inside the process/container to a PEM bundle for a private CA.
+  #   ssl_ca_cert: "/etc/ssl/custom-ca/ca-bundle.pem"
+  #   auth:
+  #     username: ${SHS_SERVERS__PRODUCTION__AUTH__USERNAME}
+  #     password: ${SHS_SERVERS__PRODUCTION__AUTH__PASSWORD}
+
+mcp:
+  transport: streamable-http # streamable-http or stdio.
+  port: "18888"
+  debug: true
+  address: localhost
+
+  # Transport security settings for DNS rebinding protection.
+  #transport_security:
+    #enable_dns_rebinding_protection: false
+    # allowed_hosts:
+    #   - "localhost:*"
+    # allowed_origins:
+    #   - "http://localhost:*"
+
+# Available Environment Variables:
+# Nesting levels are separated by a DOUBLE underscore (__), so field names and
+# server names may themselves contain single underscores.
+# SHS_MCP__PORT - Port for MCP server (default: 18888)
+# SHS_MCP__DEBUG - Enable debug mode (default: false)
+# SHS_MCP__ADDRESS - Address for MCP server (default: localhost)
+# SHS_MCP__TRANSPORT - MCP transport mode (default: streamable-http)
+# SHS_MCP__TRANSPORT_SECURITY__ENABLE_DNS_REBINDING_PROTECTION - true/false
+# SHS_MCP__TRANSPORT_SECURITY__ALLOWED_HOSTS - JSON array (e.g. '["localhost:*"]')
+# SHS_MCP__TRANSPORT_SECURITY__ALLOWED_ORIGINS - JSON array (e.g. '["http://localhost:*"]')
+# SHS_SERVERS__*__URL - URL for a specific server
+# SHS_SERVERS__*__AUTH__USERNAME - Username for a specific server
+# SHS_SERVERS__*__AUTH__PASSWORD - Password for a specific server
+# SHS_SERVERS__*__AUTH__TOKEN - Token for a specific server
+# SHS_SERVERS__*__VERIFY_SSL - Whether to verify SSL for a specific server (true/false)
+# SHS_SERVERS__*__SSL_CA_CERT - Path to a PEM CA bundle for a specific server
+# SHS_SERVERS__*__TIMEOUT - HTTP request timeout in seconds (default: 30)
