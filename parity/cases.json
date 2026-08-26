@@ -1,0 +1,102 @@
+{
+  "vars": {
+    "APP_OK": "local-1787666087616",
+    "APP_FAIL": "local-1787666126593",
+    "TAXI_A": "spark-cc4d115f011443d787f03a71a476a745",
+    "TAXI_B": "spark-110be3a8424d4a2789cb88134418217b",
+    "PI": "spark-bcec39f6201b42b9925124595baad260"
+  },
+  "tools": [
+    ["list_applications__all", "list_applications", {}],
+    ["list_applications__by_id", "list_applications", { "app_id": "$APP_OK" }],
+    ["list_applications__status_limit", "list_applications", { "status": ["completed"], "limit": 3 }],
+    ["list_applications__server", "list_applications", { "server": "local", "limit": 2 }],
+    ["list_applications__min_date", "list_applications", { "min_date": "2025-01-01", "limit": 5 }],
+    ["list_applications__taxi", "list_applications", { "app_id": "$TAXI_A" }],
+    ["list_applications__unknown_server", "list_applications", { "server": "nope" }],
+
+    ["list_jobs__default", "list_jobs", { "app_id": "$APP_OK" }],
+    ["list_jobs__sort_duration", "list_jobs", { "app_id": "$APP_OK", "sort_by": "duration", "length": 3 }],
+    ["list_jobs__sort_id", "list_jobs", { "app_id": "$APP_OK", "sort_by": "id", "offset": 2, "length": 4 }],
+    ["list_jobs__sort_failed", "list_jobs", { "app_id": "$APP_OK", "sort_by": "failed-tasks", "length": 2 }],
+    ["list_jobs__single", "list_jobs", { "app_id": "$APP_OK", "job_id": 5 }],
+    ["list_jobs__status_failed", "list_jobs", { "app_id": "$APP_FAIL", "status": ["FAILED"] }],
+    ["list_jobs__bad_sort", "list_jobs", { "app_id": "$APP_OK", "sort_by": "nope" }],
+    ["list_jobs__bad_offset", "list_jobs", { "app_id": "$APP_OK", "offset": -1 }],
+    ["list_jobs__taxi", "list_jobs", { "app_id": "$TAXI_A", "length": 3 }],
+
+    ["list_stages__default", "list_stages", { "app_id": "$APP_OK", "length": 5 }],
+    ["list_stages__summaries", "list_stages", { "app_id": "$APP_OK", "with_summaries": true, "sort_by": "id", "length": 2 }],
+    ["list_stages__status", "list_stages", { "app_id": "$APP_OK", "status": ["COMPLETE"], "sort_by": "failed-tasks", "length": 3 }],
+    ["list_stages__failed", "list_stages", { "app_id": "$APP_FAIL", "status": ["FAILED"] }],
+    ["list_stages__taxi", "list_stages", { "app_id": "$TAXI_A", "sort_by": "duration", "length": 3 }],
+
+    ["get_stage__latest", "get_stage", { "app_id": "$APP_OK", "stage_id": 20 }],
+    ["get_stage__attempt_summaries", "get_stage", { "app_id": "$APP_OK", "stage_id": 20, "attempt_id": 0, "with_summaries": true }],
+    ["get_stage__quantiles", "get_stage", { "app_id": "$APP_OK", "stage_id": 17, "with_summaries": true, "quantiles": "0.1,0.5,0.9" }],
+    ["get_stage__missing", "get_stage", { "app_id": "$APP_OK", "stage_id": 9999 }],
+
+    ["list_stage_task_failures__failed", "list_stage_task_failures", { "app_id": "$APP_FAIL", "stage_id": 0 }],
+    ["list_stage_task_failures__none", "list_stage_task_failures", { "app_id": "$APP_OK", "stage_id": 20 }],
+    ["list_stage_task_failures__explicit_attempt", "list_stage_task_failures", { "app_id": "$APP_FAIL", "stage_id": 0, "stage_attempt_id": 0 }],
+    ["list_stage_task_failures__missing_stage", "list_stage_task_failures", { "app_id": "$APP_OK", "stage_id": 9999 }],
+
+    ["get_environment__full", "get_environment", { "app_id": "$APP_OK" }],
+    ["get_environment__runtime", "get_environment", { "app_id": "$APP_OK", "section": "runtime" }],
+    ["get_environment__spark_properties", "get_environment", { "app_id": "$APP_OK", "section": "spark_properties" }],
+    ["get_environment__classpath", "get_environment", { "app_id": "$APP_OK", "section": "classpath_entries" }],
+    ["get_environment__bad_section", "get_environment", { "app_id": "$APP_OK", "section": "bogus" }],
+
+    ["list_executors__default", "list_executors", { "app_id": "$APP_OK" }],
+    ["list_executors__inactive", "list_executors", { "app_id": "$APP_OK", "include_inactive": true, "sort_by": "id" }],
+    ["list_executors__single", "list_executors", { "app_id": "$APP_OK", "executor_id": "driver" }],
+    ["list_executors__sort_gc", "list_executors", { "app_id": "$TAXI_A", "include_inactive": true, "sort_by": "gc", "length": 3 }],
+    ["list_executors__bad_sort", "list_executors", { "app_id": "$APP_OK", "sort_by": "nope" }],
+
+    ["get_executor_summary__ok", "get_executor_summary", { "app_id": "$APP_OK" }],
+    ["get_executor_summary__taxi", "get_executor_summary", { "app_id": "$TAXI_A" }],
+
+    ["get_executor_thread_dump__completed_app", "get_executor_thread_dump", { "app_id": "$APP_OK", "executor_id": "driver" }],
+
+    ["compare_job_environments__ok", "compare_job_environments", { "app_id1": "$APP_OK", "app_id2": "$APP_FAIL" }],
+    ["compare_job_environments__taxi", "compare_job_environments", { "app_id1": "$TAXI_A", "app_id2": "$TAXI_B" }],
+
+    ["compare_job_performance__ok", "compare_job_performance", { "app_id1": "$APP_OK", "app_id2": "$APP_FAIL" }],
+    ["compare_job_performance__taxi", "compare_job_performance", { "app_id1": "$TAXI_A", "app_id2": "$TAXI_B" }],
+
+    ["list_sql_executions__default", "list_sql_executions", { "app_id": "$APP_OK" }],
+    ["list_sql_executions__filtered", "list_sql_executions", { "app_id": "$APP_OK", "description": "showString", "sort_by": "duration", "limit": 2 }],
+    ["list_sql_executions__status", "list_sql_executions", { "app_id": "$APP_OK", "status": "completed", "sort_by": "id" }],
+    ["list_sql_executions__paged", "list_sql_executions", { "app_id": "$APP_OK", "limit": 0, "page_size": 3 }],
+    ["list_sql_executions__failed_app", "list_sql_executions", { "app_id": "$APP_FAIL" }],
+    ["list_sql_executions__none", "list_sql_executions", { "app_id": "$PI" }],
+
+    ["get_sql_execution__header", "get_sql_execution", { "app_id": "$APP_OK", "execution_id": 4 }],
+    ["get_sql_execution__plan", "get_sql_execution", { "app_id": "$APP_OK", "execution_id": 4, "include_plan": true }],
+    ["get_sql_execution__plan_truncated", "get_sql_execution", { "app_id": "$APP_OK", "execution_id": 4, "include_plan": true, "plan_max_length": 1200 }],
+    ["get_sql_execution__initial_plan", "get_sql_execution", { "app_id": "$APP_OK", "execution_id": 4, "include_initial_plan": true }],
+    ["get_sql_execution__aggregated", "get_sql_execution", { "app_id": "$APP_OK", "execution_id": 4, "include_aggregated_metrics": true, "include_stages": true }],
+    ["get_sql_execution__failed", "get_sql_execution", { "app_id": "$APP_FAIL", "execution_id": 0, "include_plan": true, "include_aggregated_metrics": true, "include_stages": true }],
+
+    ["compare_sql_executions__explicit", "compare_sql_executions", { "app_id1": "$APP_OK", "app_id2": "$APP_OK", "execution_id1": 4, "execution_id2": 5, "include_plan_diff": true }],
+    ["compare_sql_executions__default_ids", "compare_sql_executions", { "app_id1": "$APP_OK", "app_id2": "$APP_FAIL" }],
+    ["compare_sql_executions__no_sql", "compare_sql_executions", { "app_id1": "$PI", "app_id2": "$APP_OK" }],
+
+    ["compare_stages__same_app", "compare_stages", { "app_id1": "$APP_OK", "stage_id1": 20, "app_id2": "$APP_OK", "stage_id2": 17 }],
+    ["compare_stages__cross_app", "compare_stages", { "app_id1": "$APP_OK", "stage_id1": 0, "app_id2": "$APP_FAIL", "stage_id2": 0 }],
+    ["compare_stages__missing", "compare_stages", { "app_id1": "$APP_OK", "stage_id1": 9999, "app_id2": "$APP_OK", "stage_id2": 0 }],
+
+    ["get_job_bottlenecks__ok", "get_job_bottlenecks", { "app_id": "$APP_OK", "top_n": 3 }],
+    ["get_job_bottlenecks__taxi", "get_job_bottlenecks", { "app_id": "$TAXI_A" }],
+    ["get_job_bottlenecks__failed", "get_job_bottlenecks", { "app_id": "$APP_FAIL" }],
+
+    ["get_resource_usage_timeline__ok", "get_resource_usage_timeline", { "app_id": "$APP_OK" }],
+    ["get_resource_usage_timeline__taxi", "get_resource_usage_timeline", { "app_id": "$TAXI_A" }]
+  ],
+  "prompts": [
+    ["investigate_failure__plain", "investigate_failure", { "app_id": "$APP_FAIL" }],
+    ["investigate_failure__server", "investigate_failure", { "app_id": "$APP_FAIL", "server": "local" }],
+    ["compare_applications__plain", "compare_applications", { "app_a": "$APP_OK", "app_b": "$APP_FAIL" }],
+    ["compare_applications__full", "compare_applications", { "app_a": "$APP_OK", "app_b": "$APP_FAIL", "server": "local", "context": "A is the healthy run, B is the failing one" }]
+  ]
+}

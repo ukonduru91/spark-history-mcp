@@ -1,0 +1,18 @@
+{
+  "arguments": {
+    "app_id": "local-1787666087616",
+    "job_id": 5
+  },
+  "case": "list_jobs__single",
+  "content": [
+    {
+      "annotations": null,
+      "meta": null,
+      "text": "{\n  \"jobId\": 5,\n  \"name\": \"showString at NativeMethodAccessorImpl.java:0\",\n  \"description\": null,\n  \"submissionTime\": \"2026-08-25T13:54:56.500GMT\",\n  \"completionTime\": \"2026-08-25T13:54:57.268GMT\",\n  \"stageIds\": [\n    7\n  ],\n  \"jobGroup\": null,\n  \"jobTags\": [],\n  \"status\": \"SUCCEEDED\",\n  \"numTasks\": 4,\n  \"numActiveTasks\": 0,\n  \"numCompletedTasks\": 4,\n  \"numSkippedTasks\": 0,\n  \"numFailedTasks\": 0,\n  \"numKilledTasks\": 0,\n  \"numCompletedIndices\": 4,\n  \"numActiveStages\": 0,\n  \"numCompletedStages\": 1,\n  \"numSkippedStages\": 0,\n  \"numFailedStages\": 0,\n  \"killedTasksSummary\": {},\n  \"additional_properties\": {}\n}",
+      "type": "text"
+    }
+  ],
+  "isError": false,
+  "structuredContent": null,
+  "tool": "list_jobs"
+}

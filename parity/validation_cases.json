@@ -1,0 +1,38 @@
+{
+  "vars": { "APP_OK": "local-1787666087616" },
+  "tools": [
+    ["val__missing_one_required", "list_jobs", {}],
+    ["val__missing_two_required", "compare_stages", { "app_id1": "a", "stage_id1": 1 }],
+    ["val__missing_all_required", "compare_sql_executions", {}],
+    ["val__str_field_gets_int", "list_jobs", { "app_id": 12345 }],
+    ["val__str_field_gets_bool", "list_jobs", { "app_id": true }],
+    ["val__str_field_gets_list", "list_jobs", { "app_id": ["a"] }],
+    ["val__str_field_gets_null", "list_jobs", { "app_id": null }],
+    ["val__int_field_gets_string_numeric", "get_stage", { "app_id": "$APP_OK", "stage_id": "20" }],
+    ["val__int_field_gets_string_words", "get_stage", { "app_id": "$APP_OK", "stage_id": "twenty" }],
+    ["val__int_field_gets_float", "get_stage", { "app_id": "$APP_OK", "stage_id": 20.5 }],
+    ["val__int_field_gets_float_integral", "get_stage", { "app_id": "$APP_OK", "stage_id": 20.0 }],
+    ["val__int_field_gets_bool", "get_stage", { "app_id": "$APP_OK", "stage_id": true }],
+    ["val__optional_str_gets_int", "list_jobs", { "app_id": "$APP_OK", "server": 5 }],
+    ["val__optional_int_gets_string", "list_jobs", { "app_id": "$APP_OK", "length": "2" }],
+    ["val__optional_int_gets_words", "list_jobs", { "app_id": "$APP_OK", "length": "two" }],
+    ["val__optional_list_gets_string", "list_jobs", { "app_id": "$APP_OK", "status": "SUCCEEDED" }],
+    ["val__optional_list_gets_int_items", "list_jobs", { "app_id": "$APP_OK", "status": [1, 2] }],
+    ["val__bool_gets_string_true", "list_stages", { "app_id": "$APP_OK", "with_summaries": "true", "length": 1 }],
+    ["val__bool_gets_string_yes", "list_stages", { "app_id": "$APP_OK", "with_summaries": "yes", "length": 1 }],
+    ["val__bool_gets_string_junk", "list_stages", { "app_id": "$APP_OK", "with_summaries": "maybe", "length": 1 }],
+    ["val__bool_gets_int", "list_stages", { "app_id": "$APP_OK", "with_summaries": 1, "length": 1 }],
+    ["val__bool_gets_int_two", "list_stages", { "app_id": "$APP_OK", "with_summaries": 2, "length": 1 }],
+    ["val__offset_gets_string", "list_jobs", { "app_id": "$APP_OK", "offset": "1", "length": 1 }],
+    ["val__two_type_errors", "get_stage", { "app_id": 1, "stage_id": "x" }],
+    ["val__missing_and_type_error", "get_stage", { "stage_id": "x" }],
+    ["val__unknown_only", "list_jobs", { "app_id": "$APP_OK", "length": 1, "bogus": 1 }]
+  ],
+  "prompts": [
+    ["val__prompt_missing_one", "investigate_failure", {}],
+    ["val__prompt_missing_two", "compare_applications", {}],
+    ["val__prompt_extra", "investigate_failure", { "app_id": "x", "bogus": "y" }],
+    ["val__prompt_two_extra", "investigate_failure", { "app_id": "x", "b1": "y", "b2": 3 }],
+    ["val__prompt_int_arg", "investigate_failure", { "app_id": 5 }]
+  ]
+}

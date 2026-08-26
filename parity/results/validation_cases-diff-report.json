@@ -1,0 +1,41 @@
+{
+  "tools": {
+    "tool__val__bool_gets_int.json": [],
+    "tool__val__bool_gets_int_two.json": [],
+    "tool__val__bool_gets_string_junk.json": [],
+    "tool__val__bool_gets_string_true.json": [],
+    "tool__val__bool_gets_string_yes.json": [],
+    "tool__val__int_field_gets_bool.json": [],
+    "tool__val__int_field_gets_float.json": [],
+    "tool__val__int_field_gets_float_integral.json": [],
+    "tool__val__int_field_gets_string_numeric.json": [],
+    "tool__val__int_field_gets_string_words.json": [],
+    "tool__val__missing_all_required.json": [],
+    "tool__val__missing_and_type_error.json": [],
+    "tool__val__missing_one_required.json": [],
+    "tool__val__missing_two_required.json": [],
+    "tool__val__offset_gets_string.json": [],
+    "tool__val__optional_int_gets_string.json": [],
+    "tool__val__optional_int_gets_words.json": [],
+    "tool__val__optional_list_gets_int_items.json": [],
+    "tool__val__optional_list_gets_string.json": [],
+    "tool__val__optional_str_gets_int.json": [],
+    "tool__val__str_field_gets_bool.json": [],
+    "tool__val__str_field_gets_int.json": [],
+    "tool__val__str_field_gets_list.json": [],
+    "tool__val__str_field_gets_null.json": [],
+    "tool__val__two_type_errors.json": [],
+    "tool__val__unknown_only.json": []
+  },
+  "prompts": {
+    "prompt__val__prompt_extra.json": [],
+    "prompt__val__prompt_int_arg.json": [],
+    "prompt__val__prompt_missing_one.json": [],
+    "prompt__val__prompt_missing_two.json": [],
+    "prompt__val__prompt_two_extra.json": []
+  },
+  "catalogue": {
+    "_tools.json": [],
+    "_prompts.json": []
+  }
+}
