@@ -23,7 +23,7 @@ fine; a stage where the median is 2 seconds and the max is 400 is broken.
 | `peakExecutionMemory` | high-water mark of execution memory | approaching the executor memory fraction → OOM risk |
 | `memoryBytesSpilled` | data pushed out of execution memory | any non-zero → the stage needed more memory than it had |
 | `diskBytesSpilled` | spill that reached disk | non-zero → real slowdown; this is the expensive one |
-| `inputBytes` / `outputBytes` | read from / written to storage | max / p50 > 5 → input file sizes are uneven |
+| `inputBytes` / `outputBytes` | read from / written to storage | max / p50 > 5 → input file sizes are uneven. For a write stage, also compare stage `outputBytes / duration` against `executorRunTime`: low throughput plus a large `duration − executorRunTime` gap points at a slow sink (HDFS/S3/JDBC), not at Spark compute — see the optimization skill's "Slow writes to a sink" |
 | `shuffleReadBytes` | data pulled from the previous stage | max / p50 > 5 → key skew |
 | `shuffleWriteBytes` | data written for the next stage | large relative to input → the query is shuffling more than it needs to |
 | `resultSize` | serialized result returned to the driver | large → a `collect()` is happening |

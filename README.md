@@ -38,6 +38,7 @@ cannot modify anything.
 
 ## Contents
 
+0. [Prerequisites](#0-prerequisites)
 1. [Quick start](#1-quick-start)
 2. [Pointing it at your Spark History Server](#2-pointing-it-at-your-spark-history-server)
 3. [Connecting your LLM client](#3-connecting-your-llm-client)
@@ -50,17 +51,38 @@ cannot modify anything.
 
 ---
 
+## 0. Prerequisites
+
+Pick a route below and you only need what that route lists — you don't need both.
+
+| Route | You need | Notes |
+| --- | --- | --- |
+| **Option A — Docker** | [Git](https://git-scm.com/), [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + the Compose plugin on Linux) | Nothing else — Node, TypeScript and all npm dependencies are installed *inside* the image during `docker compose up --build`. Make sure the Docker daemon is actually running before you run the command (on Windows/Mac, start Docker Desktop first). |
+| **Option B — from source** | Git, [Node.js 20+](https://nodejs.org/) (22 recommended — npm ships with it, nothing separate to install), and the packages `npm install` pulls from `package.json`: `@modelcontextprotocol/sdk`, `express`, `socks-proxy-agent`, `yaml`, `zod` | You do not install these by hand — `npm install` reads `package.json` and fetches all of them (plus dev dependencies: `typescript`, `tsx`, `@types/*`) into `node_modules/`. |
+
+You do **not** need a Java/Spark install yourself in either route — Option A's Docker image bundles a real Spark distribution to serve the sample event logs; Option B assumes you already have a Spark History Server running somewhere (yours, or the one from Option A) and just points at its URL.
+
+---
+
 ## 1. Quick start
 
 ### Option A — Docker (nothing to install but Docker)
 
-Starts a Spark History Server loaded with sample event logs *and* this MCP:
+Starts a Spark History Server loaded with sample event logs *and* this MCP, in
+one command — this is the fastest path and needs nothing installed except Git
+and Docker (see [Prerequisites](#0-prerequisites)):
 
 ```bash
 git clone https://github.com/ukonduru91/spark-history-mcp.git
 cd spark-history-mcp
-docker compose up --build
+docker compose up --build -d      # -d = detached; drop it to watch the logs
 ```
+
+That single command does three things: builds this MCP server's Docker image
+(installing its npm dependencies and compiling TypeScript to `dist/` *inside*
+the image), starts the bundled Spark History Server container, and starts this
+MCP server container in `streamable-http` mode, already configured (via
+`docker-compose.yml`'s env vars) to point at that History Server.
 
 | | |
 | --- | --- |
@@ -68,10 +90,11 @@ docker compose up --build
 | Spark History REST API | http://localhost:18080/api/v1/applications |
 | MCP endpoint | http://localhost:18888/mcp |
 
-The bundled logs include a healthy pipeline and a deliberately failed job, so the
-tools have something real to show before you point them at your own cluster.
+Check both containers came up healthy with `docker compose ps`. The bundled
+logs include a healthy pipeline and a deliberately failed job, so the tools
+have something real to show before you point them at your own cluster.
 
-To run only the History Server:
+To run only the History Server (no MCP container):
 
 ```bash
 ./start_local_spark_history.sh          # macOS / Linux / Git Bash
@@ -80,15 +103,33 @@ To run only the History Server:
 
 ### Option B — from source
 
-Requires Node.js 20+ (22 recommended).
+Requires Node.js 20+ (22 recommended) — see [Prerequisites](#0-prerequisites).
+Use this when you want the MCP server itself running as a local process (e.g.
+to register it with an LLM client over **stdio** — see
+[§3](#3-connecting-your-llm-client)) rather than as a Docker container, or when
+you're developing against it.
 
 ```bash
 git clone https://github.com/ukonduru91/spark-history-mcp.git
 cd spark-history-mcp
-npm install
-npm run build
-npm start
+npm install                 # installs the packages from package.json into node_modules/
+npm run build                # compiles src/ → dist/index.js
 ```
+
+Before starting it, point it at your Spark History Server — edit
+[`config.yaml`](config.yaml) (see [§2](#2-pointing-it-at-your-spark-history-server)
+for every option). The file ships pointing at `http://localhost:18080`, which
+matches Option A's Docker demo server if you have that running.
+
+Then start it:
+
+```bash
+npm start                    # runs `node dist/index.js`, transport from config.yaml/env (default streamable-http, port 18888)
+```
+
+or, to have an LLM client (Claude Code, Claude Desktop, ...) launch it itself
+over stdio instead of running it standalone, skip `npm start` and register it
+as in [§3](#3-connecting-your-llm-client).
 
 ### Verify it works
 
@@ -118,7 +159,13 @@ export SHS_SERVERS__LOCAL__DEFAULT=true
 
 ### b. A YAML config file
 
-The server looks for one in this order:
+**This is [`config.yaml`](config.yaml) at the repo root** — it ships pre-filled
+with a `local` server pointing at `http://localhost:18080` (the Docker demo
+History Server from Option A), set as the default. Edit the `url:` under
+`servers:` to point at your own Spark History Server, or add a new named
+server block (e.g. `production:`) as shown below and set its `default: true`.
+
+The server looks for a config file in this order:
 
 1. the path given to `--config`, or `$SHS_MCP_CONFIG`
 2. `./config.yaml` in the working directory

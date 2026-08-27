@@ -92,7 +92,10 @@ through this decision order — it is ordered by how much the answer changes:
 5. **Under-parallelised?** `numTasks` below the total executor core count — cores
    are idle.
 6. **I/O-bound?** `executorRunTime` well below `duration` — waiting on storage or
-   shuffle fetch, not computing.
+   shuffle fetch, not computing. When this shows up on the final write stage
+   specifically, it is how a slow sink (HDFS, S3, a JDBC target) presents — see
+   [Slow writes to a sink](references/tuning-playbook.md#slow-writes-to-a-sink)
+   in the playbook.
 
 `references/tuning-playbook.md` has the fix for each of these, with the settings,
 the reasoning, and the failure modes of over-applying them. Read it once you know

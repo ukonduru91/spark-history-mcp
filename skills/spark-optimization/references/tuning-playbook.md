@@ -16,6 +16,7 @@ almost every Spark setting has a cost on the other side.
 - [Scheduler overhead and over-parallelisation](#scheduler-overhead-and-over-parallelisation)
 - [Caching](#caching)
 - [I/O and file formats](#io-and-file-formats)
+- [Slow writes to a sink](#slow-writes-to-a-sink)
 - [Adaptive Query Execution](#adaptive-query-execution)
 - [Cost, as distinct from speed](#cost-as-distinct-from-speed)
 
@@ -260,6 +261,57 @@ For a DataFrame used once, caching is strictly worse than not caching.
 - **Compression**: Snappy (fast, splittable) for intermediate data; ZSTD for
   colder data where size matters more than CPU. Plain gzip Parquet is not
   splittable at the file level and limits read parallelism.
+
+---
+
+## Slow writes to a sink
+
+**Diagnosis** — on the stage that performs the final write (the job description,
+or a `Write` node in `nodeMetrics`, identifies it), compute:
+
+```
+throughput = outputBytes (stage total) / duration
+gap        = duration - executorRunTime      # per task, or from the distributions
+```
+
+Low throughput next to the other stages' read/shuffle throughput, combined with
+a large `gap` (tasks spend wall time not running), points at the sink itself —
+network to HDFS/S3, DataNode/object-store latency, a JDBC target — rather than
+at Spark's own compute. If `executorRunTime` is close to `duration` instead, the
+stage is slow because it is doing real work (a sort, a UDF) right before the
+write, not because the sink is slow.
+
+**What Spark's own metrics do not tell you** — the History Server has no
+dedicated "time spent writing" metric, only `outputBytes`/`outputRecords` and
+the stage's wall time. The `gap` above is the closest available signal, not a
+direct measurement; confirming the sink itself (HDFS DataNode latency, S3
+throttling) needs that system's own metrics, which the History Server does not
+have.
+
+**Mechanism** — roughly in order of likelihood:
+
+1. **Too few output tasks** — one or two tasks doing all the writing while the
+   rest of the stage is empty. Check the write stage's `numTasks`; a `coalesce`
+   placed right before the write is a common cause.
+2. **Small files** — thousands of tiny writes, each paying open/close/commit
+   overhead. Same diagnosis and fix as [Small files](#small-files) above.
+3. **A slow or contended sink** — the destination is throttling, under-
+   replicated, or a NameNode/DataNode is itself under load. Shows as uniformly
+   slow write tasks (not skewed) with a real `duration`-vs-`executorRunTime`
+   gap; confirming it needs the target system's own monitoring — Spark only
+   shows the symptom.
+4. **The output committer** — the v1 ("file") commit algorithm does a
+   sequential rename/move at job-commit time proportional to output file count;
+   on stores without atomic rename (S3) this can dominate wall time and will
+   not show up in any task's metrics, only as a gap between the last task's
+   `completionTime` and the stage's/job's `completionTime`. Prefer the v2
+   algorithm or a cloud-native committer (S3A magic committer,
+   `spark.sql.sources.commitProtocolClass`) when this is suspected.
+
+**Fixes** — repartition before the write to target 128–512MB per output file
+(see Small files); prefer a columnar format with a cheap commit path; if the
+gap points at the committer rather than the tasks, change the commit algorithm
+or committer rather than tuning executors.
 
 ---
 
