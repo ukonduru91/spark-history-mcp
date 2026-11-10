@@ -19,12 +19,21 @@ import {
 import { SparkRestClient } from "../api/sparkClient.js";
 import type { Config } from "../config/config.js";
 import { PROMPT_HANDLERS } from "../prompts/prompts.js";
-import { PROMPT_CATALOG, TOOL_CATALOG } from "../schemas/generated.js";
-import { TOOL_HANDLERS } from "../tools/tools.js";
+import { DATAFLINT_TOOL_CATALOG } from "../schemas/dataflint.js";
+import { PROMPT_CATALOG, TOOL_CATALOG as UPSTREAM_TOOL_CATALOG } from "../schemas/generated.js";
+import { DATAFLINT_TOOL_HANDLERS } from "../tools/dataflint.js";
+import { TOOL_HANDLERS as UPSTREAM_TOOL_HANDLERS } from "../tools/tools.js";
 import { ApplicationDiscovery } from "../utils/utils.js";
 import { errorText } from "./errors.js";
 import { validatePromptArguments, validateToolArguments } from "./validation.js";
 import { pythonJsonDumps } from "./json.js";
+
+/** Upstream tools (parity with the Python server) plus the DataFlint extension. */
+const TOOL_CATALOG = [...UPSTREAM_TOOL_CATALOG, ...DATAFLINT_TOOL_CATALOG];
+const TOOL_HANDLERS: Record<string, (ctx: AppContext, args: Record<string, any>) => Promise<unknown>> = {
+  ...UPSTREAM_TOOL_HANDLERS,
+  ...DATAFLINT_TOOL_HANDLERS,
+};
 
 export const SERVER_NAME = "Spark Events";
 export const SERVER_VERSION = "0.1.0";

@@ -100,6 +100,9 @@ export function throwForStatus(
 
 export type QueryValue = string | number | boolean | null | undefined;
 
+/** Cap on redirects followed per request (guards against redirect loops). */
+const MAX_REDIRECTS = 10;
+
 export interface RestClientOptions {
   verifySsl?: boolean;
   sslCaCert?: string | null;
@@ -169,7 +172,16 @@ export class RestClient {
       if (value === undefined || value === null) continue;
       url.searchParams.append(key, String(value));
     }
+    return this.getUrl<T>(url, timeoutSeconds, 0);
+  }
 
+  /**
+   * GET a URL, following redirects like urllib3 does for the Python server.
+   * The History Server answers requests for a running (in-progress) application
+   * with a 302 to the same URL whenever its cached UI is stale
+   * (ApplicationCacheCheckFilter); not following it fails the call.
+   */
+  private async getUrl<T>(url: URL, timeoutSeconds: number | undefined, redirects: number): Promise<T> {
     const agent = await this.buildAgent(url);
     const timeoutMs = (timeoutSeconds ?? this.options.timeout ?? 30) * 1000;
     const transport = url.protocol === "https:" ? https : http;
@@ -196,6 +208,11 @@ export class RestClient {
               const key = response.rawHeaders[i];
               const value = response.rawHeaders[i + 1];
               headers[key] = key in headers ? `${headers[key]}, ${value}` : value;
+            }
+            const location = response.headers.location;
+            if ([301, 302, 303, 307, 308].includes(status) && location && redirects < MAX_REDIRECTS) {
+              this.getUrl<T>(new URL(location, url), timeoutSeconds, redirects + 1).then(resolve, reject);
+              return;
             }
             if (status < 200 || status > 299) {
               try {

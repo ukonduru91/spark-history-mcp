@@ -18,7 +18,7 @@ performance tuning.
                     └────────┬─────────┘
                              │ MCP (stdio or streamable-http)
                     ┌────────▼─────────┐
-                    │  this server     │   17 tools, 2 prompts
+                    │  this server     │   20 tools, 2 prompts
                     └────────┬─────────┘
                              │ HTTP  GET /api/v1/...
                     ┌────────▼─────────┐
@@ -321,8 +321,10 @@ extend them with your team's own knowledge.
 
 ## 5. The tools
 
-All 17 live in [`src/tools/tools.ts`](src/tools/tools.ts); their JSON schemas are
-in [`src/schemas/generated.ts`](src/schemas/generated.ts). Run
+The 17 upstream tools live in [`src/tools/tools.ts`](src/tools/tools.ts); their JSON
+schemas are in [`src/schemas/generated.ts`](src/schemas/generated.ts). The 3 DataFlint
+tools live in [`src/tools/dataflint.ts`](src/tools/dataflint.ts) and
+[`src/schemas/dataflint.ts`](src/schemas/dataflint.ts). Run
 `node scripts/mcp-cli.mjs list-tools` to see them with their arguments.
 
 ### Finding things
@@ -362,6 +364,40 @@ in [`src/schemas/generated.ts`](src/schemas/generated.ts). Run
 | `compare_sql_executions` | metrics diff for two queries, plus an optional plan-structure diff |
 | `compare_stages` | stage metrics and task quantiles side by side |
 
+### DataFlint (extension, not in upstream)
+
+For History Servers with the [DataFlint](https://github.com/dataflint/spark) jar on
+the classpath (`SPARK_DAEMON_CLASSPATH=/path/to/spark_2.12-<version>.jar`). DataFlint's
+UI computes its summary and alerts in the browser (no endpoint serves them); these
+tools recompute them from the same REST data with DataFlint's own formulas, thresholds,
+metric renames and alert texts, ported from the UI bundle of `io.dataflint:spark_2.12`
+0.9.9. Checked against that UI on Spark 3.2.1: 16 applications (local, real executors
+with static and dynamic allocation, YARN-style attempt ids), 607 checks, 0 differences.
+
+| Tool | Returns |
+| --- | --- |
+| `dataflint_get_app_summary` | DataFlint's summary page: duration, **DCU**, input, output, **memory usage %**, shuffle read/write, spill, **idle cores %**, task error rate, and the SQL table (duration %, DCU %, input, output); plus memory settings and heap details |
+| `dataflint_get_alerts` | DataFlint's Alerts page, verbatim (title, location, message, suggestion): idle cores, executor/driver memory, partition skew, small tasks, large partitions, small files read/written, long filters, broadcast-small-table, large broadcast, large cross join. Extra checks (`diskSpill`, `taskFailures`) are marked `source: "custom"` |
+| `dataflint_get_sql_plan` | one query's DataFlint plan nodes and metrics (files written, partitions, spill…), plan edges, and its stages |
+
+All three take `app_id`, optional `server` and optional `app_attempt_id`. YARN
+applications are served only under `/{appId}/{attemptId}/`, so the latest attempt is
+used when none is given.
+
+Not computed: DataFlint's Delta Lake and Iceberg alerts. Without the jar the
+Spark-API parts still work and results say `dataflint_available: false`. The parity
+harness ignores `dataflint_*` tools.
+
+Notes for YARN clusters:
+
+* The driver-memory alert needs the driver's peak heap, which Spark only logs with
+  `spark.eventLog.logStageExecutorMetrics=true`; executor memory usage works without it.
+* On Spark 3.2 with DataFlint 0.9.9 the large-cross-join alert cannot fire (the metric
+  it reads is not recorded), in the UI or here.
+* The History Server answers requests for running applications with a 302 to the
+  same URL when its cache is stale; the HTTP client follows redirects (as the Python
+  server's urllib3 does), which all tools benefit from.
+
 ### Prompts
 
 `investigate_failure(app_id, server?)` and
@@ -394,9 +430,11 @@ src/
     generated.ts           model shapes, generated from the upstream OpenAPI models
     deserialize.ts         from_dict / model_dump equivalents
     mcpTypes.ts            curated LLM-facing output models
-  tools/tools.ts           the 17 tools
+  tools/tools.ts           the 17 upstream tools
+  tools/dataflint.ts       the 3 DataFlint tools (summary, alerts, SQL plan)
   prompts/prompts.ts       the 2 prompts
   schemas/generated.ts     tool + prompt catalogue (names, descriptions, schemas)
+  schemas/dataflint.ts     catalogue entries for the DataFlint tools (hand-written)
 ```
 
 Three details worth knowing if you plan to modify it:

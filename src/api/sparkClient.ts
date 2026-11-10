@@ -71,6 +71,11 @@ export class SparkRestClient {
   readonly timeout: number;
 
   private readonly rest: RestClient;
+  /**
+   * Same transport rooted at the server URL instead of `/api/v1`, for the
+   * DataFlint plugin's endpoints under `/history/{appId}/dataflint/...`.
+   */
+  private readonly historyRest: RestClient;
   /** Optional callback returning a fresh Cookie header (EMR re-auth). */
   private reauth: (() => string | Promise<string>) | null = null;
 
@@ -82,12 +87,17 @@ export class SparkRestClient {
     this.sslCaCert = serverConfig.ssl_ca_cert ?? null;
     this.timeout = serverConfig.timeout;
 
-    this.rest = new RestClient(this.baseUrl, {
+    const restOptions = {
       verifySsl: this.verifySsl,
       sslCaCert: this.sslCaCert,
       proxy: this.useProxy ? PROXY_URL : null,
       timeout: this.timeout,
-    });
+    };
+    this.rest = new RestClient(this.baseUrl, restOptions);
+    this.historyRest = new RestClient(
+      (serverConfig.url ?? "").replace(/\/+$/, ""),
+      restOptions,
+    );
 
     const auth = serverConfig.auth;
     if (auth) {
@@ -95,9 +105,9 @@ export class SparkRestClient {
         const token = Buffer.from(`${auth.username}:${auth.password}`).toString(
           "base64",
         );
-        this.rest.setDefaultHeader("Authorization", `Basic ${token}`);
+        this.setHeader("Authorization", `Basic ${token}`);
       } else if (auth.token) {
-        this.rest.setDefaultHeader("Authorization", `Bearer ${auth.token}`);
+        this.setHeader("Authorization", `Bearer ${auth.token}`);
       }
     }
   }
@@ -122,7 +132,64 @@ export class SparkRestClient {
   }
 
   private applyCookie(cookieHeader: string): void {
-    this.rest.setDefaultHeader("Cookie", cookieHeader);
+    this.setHeader("Cookie", cookieHeader);
+  }
+
+  /** Apply a default header to both the REST API and the history-root transports. */
+  private setHeader(name: string, value: string): void {
+    this.rest.setDefaultHeader(name, value);
+    this.historyRest.setDefaultHeader(name, value);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Raw access (used by the DataFlint tools)                          */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * GET an application-scoped REST API path as raw JSON, e.g.
+   * `getAppJson(appId, "/stages", {withSummaries: true})`. No model
+   * deserialization, so every field the server sends is kept.
+   */
+  async getAppJson<T = unknown>(
+    appId: string,
+    subPath: string,
+    query: Record<string, QueryValue> = {},
+  ): Promise<T> {
+    return this.resilient(appId, null, () =>
+      this.rest.get<T>(`/applications/${appId}${subPath}`, query, this.timeout),
+    );
+  }
+
+  /**
+   * GET one of the DataFlint plugin's JSON endpoints for an application, e.g.
+   * `getDataflintJson(appId, "sqlplan", {offset: 0, length: 1000})` for
+   * `/history/{appId}/dataflint/sqlplan/json/`. Throws `NotFoundException`
+   * when the DataFlint jar is not on the History Server's classpath.
+   */
+  async getDataflintJson<T = unknown>(
+    appId: string,
+    endpoint: string,
+    query: Record<string, QueryValue> = {},
+  ): Promise<T> {
+    const call = () =>
+      this.historyRest.get<T>(
+        `/history/${appId}/dataflint/${endpoint}/json/`,
+        query,
+        this.timeout,
+      );
+    try {
+      return await call();
+    } catch (error) {
+      if (
+        (error instanceof UnauthorizedException ||
+          error instanceof ForbiddenException) &&
+        this.reauth
+      ) {
+        this.applyCookie(await this.reauth());
+        return await call();
+      }
+      throw error;
+    }
   }
 
   /**

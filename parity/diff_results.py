@@ -158,6 +158,11 @@ def main() -> None:
     for catalogue in ("_tools.json", "_prompts.json"):
         left = json.loads((dir_a / catalogue).read_text())
         right = json.loads((dir_b / catalogue).read_text())
+        if catalogue == "_tools.json":
+            # The dataflint_* tools are an extension of the TypeScript port with
+            # no Python counterpart; parity covers the upstream tools only.
+            left = [t for t in left if not t["name"].startswith("dataflint_")]
+            right = [t for t in right if not t["name"].startswith("dataflint_")]
         diffs = []
         walk_diff(catalogue, left, right, diffs, limit=60)
         report["catalogue"][catalogue] = diffs
